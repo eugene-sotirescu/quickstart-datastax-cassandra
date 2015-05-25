@@ -1,8 +1,16 @@
-.gradle
+.idea/
+.gradle/
+*.iml
+*.ipr
+*.iws
+work/
+log/
+logs/
+.DS_Store
 build/
-
-# Ignore Gradle GUI config
-gradle-app.setting
-
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
+bin/
+*/bin
+target/
+eclipse-build
+*/eclipse-build
+/.settings/

@@ -1,0 +1,20 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin:'application'
+
+sourceCompatibility = 1.8
+version = '1.0'
+
+//mainClassName = "quickstart.jpacassandra.run.App"
+
+repositories {
+        
+     maven { url "https://oss.sonatype.org/content/repositories/releases" }
+     maven { url "http://kundera.googlecode.com/svn/maven2/maven-missing-resources" }
+     maven { url "http://repo.maven.apache.org/maven2" }
+}
+
+dependencies {
+    compile group: 'com.impetus.kundera.client', name: 'kundera-cassandra', version:'2.13.1'
+    testCompile group: 'junit', name: 'junit', version:'4.0'
+}
