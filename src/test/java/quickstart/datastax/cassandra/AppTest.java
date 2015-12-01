@@ -1,4 +1,4 @@
-package quickstart.jpacassandra;
+package quickstart.datastax.cassandra;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

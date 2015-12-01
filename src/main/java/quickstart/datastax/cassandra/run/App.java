@@ -1,4 +1,4 @@
-package quickstart.jpacassandra.run;
+package quickstart.datastax.cassandra.run;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
