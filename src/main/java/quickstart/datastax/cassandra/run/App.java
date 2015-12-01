@@ -10,6 +10,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 
 /*
+ * CREATE KEYSPACE IF NOT EXISTS test WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
  * CREATE TABLE test (
 		name text,
 		number text,
@@ -44,13 +45,14 @@ import com.datastax.driver.core.Statement;
 
 public class App {
 
-	private final static String selectAll = "SELECT * FROM test WHERE name = ?";
 	private final static Cluster cluster = Cluster.builder().addContactPoint("127.0.0.1").build();
-	private final static Session session = cluster.connect("claiming");
-
+	private final static Session session = cluster.connect("test");
+	private final static int pageSize = 2;
+	private final static String selectAll = "SELECT * FROM test WHERE name = ?";
 
 	public static void main(String[] args) {
-		paginateResults(3);
+		
+		paginateResults(pageSize);
 
 		cluster.close();
 	}
