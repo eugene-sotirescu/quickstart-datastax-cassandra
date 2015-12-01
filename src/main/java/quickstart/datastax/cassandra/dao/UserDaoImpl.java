@@ -1,4 +1,4 @@
-package quickstart.jpacassandra.dao;
+package quickstart.datastax.cassandra.dao;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -6,24 +6,17 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import quickstart.jpacassandra.entity.User;
 
-import javax.persistence.Query;
-
-public class UserDaoImpl extends DaoBase implements UserDao {
+public class UserDaoImpl  {
 	private static final Logger log = LoggerFactory
 			.getLogger(UserDaoImpl.class);
 
-	public void create(User user) {
+/*	public void create(User user) {
 		if (user.getId() == 0) {
 			Random r = new Random(System.currentTimeMillis());
 			int randNum = (1 + r.nextInt(2)) * 1000000 + r.nextInt(1000000);
@@ -111,11 +104,11 @@ public class UserDaoImpl extends DaoBase implements UserDao {
 	public long getRowCount() {
 		EntityManager em = getEntityManagerFactory().createEntityManager();
 		Query q = em.createQuery ("SELECT count(x) FROM User x");
-		/* this doesn't work, kundera impl returns a User object instead of a number
-		return q.getSingleResult ();*/
+		 this doesn't work, kundera impl returns a User object instead of a number
+		return q.getSingleResult ();
 		//inefficient way of getting the count:
 		List<User> users = q.getResultList();
 		return users.size();
-	}
+	}*/
 
 }

@@ -1,110 +1,102 @@
 package quickstart.jpacassandra.run;
 
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PagingState;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
 
-import quickstart.jpacassandra.dao.UserDao;
-import quickstart.jpacassandra.dao.UserDaoImpl;
-import quickstart.jpacassandra.entity.User;
+/*
+ * CREATE TABLE test (
+		name text,
+		number text,
+		PRIMARY KEY ((name), number)
+	);
+
+	INSERT INTO test (name, number)
+	VALUES ('one', '1');
+	INSERT INTO test (name, number)
+	VALUES ('two', '2');
+	INSERT INTO test (name, number)
+	VALUES ('three', '3');
+	INSERT INTO test (name, number)
+	VALUES ('four', '4');
+	INSERT INTO test (name, number)
+	VALUES ('four', '1+3');
+	INSERT INTO test (name, number)
+	VALUES ('four', '2+2');
+	INSERT INTO test (name, number)
+	VALUES ('five', '5');
+	INSERT INTO test (name, number)
+	VALUES ('six', '6');
+	INSERT INTO test (name, number)
+	VALUES ('seven', '7');
+	INSERT INTO test (name, number)
+	VALUES ('seven', '1+6');
+	INSERT INTO test (name, number)
+	VALUES ('seven', '2+5');
+	INSERT INTO test (name, number)
+	VALUES ('seven', '3+4');
+	*/
 
 public class App {
-	static User user1;
-	static User user2;
-	
-	static {
-	user1 = new User();
-	user1.setFirstName("Apollo");
-	user1.setLastName("Citharoedus");
-	user1.setEmail("apollo@delphi.gr");
-	
-	user2 = new User();
-	user2.setFirstName("Priam");
-	user2.setLastName("Basileus");
-	user2.setEmail("priam@troy.gr");
-	
+
+	private final static String selectAll = "SELECT * FROM test WHERE name = ?";
+	private final static Cluster cluster = Cluster.builder().addContactPoint("127.0.0.1").build();
+	private final static Session session = cluster.connect("claiming");
+
+
+	public static void main(String[] args) {
+		paginateResults(3);
+
+		cluster.close();
 	}
-	public static void main(String[] args) {		
+
+	private static void paginateResults(int fetchSize) {
+		ResultSet results = null;
+		PreparedStatement statement = session.prepare(selectAll);  
+		BoundStatement boundStatement = new BoundStatement(statement);
+		boundStatement.bind("seven");
+		boundStatement.setFetchSize(fetchSize);
 		
-		//create a user
-		User u = createUser(user1);
-		User newUser = getUser(u.getId());
-		System.out.println("created new user :" + newUser);
-		
-		//now let's update this user
-		newUser.setEmail("apollo@colonus.gr");
-		User updatedUser = updateUser(newUser);
-		System.out.println("updated same user:" + updatedUser);
-		
-		List<User> users = listAll();
-		System.out.println("Row count:" + getRowCount());
-		System.out.println("All users:" + users);
-		
-		String lastName = "Citharoedus";
-		List<User> usersByLastname = listByLastName(lastName);
-		System.out.println("Users called " + lastName + " count:" + usersByLastname.size());
-		System.out.println("Users called " + lastName + ":" + usersByLastname);
-		
-		//delete a random user
-		if (users != null && users.size() > 1) {
-			Random randomGenerator = new Random();
-			int index = randomGenerator.nextInt(users.size());
-			int userIdToDelete = users.get(index).getId();
-			deleteUser(userIdToDelete);
-			getUser(userIdToDelete);
+		for (int i = 1; ; i++) {
+			System.out.println("Page " + i + "\n-------");
+			PagingState thisPageState = getPagingState(results);
+			
+			if (thisPageState != null) {
+				boundStatement.setPagingState(thisPageState);
+			}
+
+			results = session.execute(boundStatement);
+			PagingState nextPageState = getPagingState(results);
+			if (thisPageState != null)
+				System.out.format("(%s %s\n","thisPageState:", thisPageState.toString() + ")");
+			
+			
+			int remaining = results.getAvailableWithoutFetching();
+			for (Row row : results) {
+				System.out.format("%s %s\n", row.getString("name"), row.getString("number"));
+				if (--remaining == 0) {
+					break;
+				}
+			}
+			if (nextPageState != null)
+				System.out.format("(%s %s\n","nextPageState:", nextPageState.toString() + ")");
+			thisPageState = nextPageState;
+			if (nextPageState == null)
+				break;
 		}
-		System.out.println("Row count:" + getRowCount());
-
-
 	}
 
-
-	private static long getRowCount() {
-		UserDao userDao = new UserDaoImpl();
-		return (long) userDao.getRowCount();
-		
-	}
-
-	private static void deleteUser(int userId) {
-		System.out.println("Deleting user with id:" + userId);
-		UserDao userDao = new UserDaoImpl();
-		userDao.delete(userId);
-		
-	}
-
-
-	private static List<User> listByLastName(String lastName) {
-		UserDao userDao = new UserDaoImpl();
-    	List<User> users = userDao.listByLastName(lastName);
-		return users;
-	}
-
-
-	private static User updateUser(User updatedUser) {
-		UserDao userDao = new UserDaoImpl();
-		userDao.update(updatedUser);
-		return updatedUser;
-	}
-
-
-	private static User createUser(User newUser) {
-		UserDao userDao = new UserDaoImpl();
-		userDao.create(newUser);
-		return newUser;
-	}
-
-
-	private static User getUser(int id) {
-		UserDao userDao = new UserDaoImpl();
-    	User user = userDao.read(id);
-    	return user;
-	}
-
-
-	private static List<User> listAll() {
-		UserDao userDao = new UserDaoImpl();
-    	List<User> users = userDao.list();
-		return users;
+	private static PagingState getPagingState(ResultSet results) {
+		PagingState ps = null;
+		if (results != null) {
+			ps = results.getExecutionInfo().getPagingState();
+		}
+		return ps;
 	}
 
 }
